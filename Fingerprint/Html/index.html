@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+  </head>
+
+  <body>
+    <div class="bg-white shadow-sm border mb-4 rounded p-3">
+      <p
+        class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+        style="
+          color: #5b00fd;
+          background-color: rgba(91, 0, 253, 0.1);
+          letter-spacing: 0.4px;
+        "
+      >
+        Capture
+      </p>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between">
+            <div
+              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 details_box"
+            >
+              <div
+                class="border mb-3 py-1 px-2 rounded fs-6"
+                style="border: 1px solid rgba(91, 0, 253, 0.1);"
+              >
+                <strong>Serial No:</strong>
+              </div>
+              <div
+                class="border mb-3 py-1 px-2 rounded fs-6"
+                style="border: 1px solid rgba(91, 0, 253, 0.1);"
+              >
+                <strong>Model:</strong>
+              </div>
+              <div
+                class="border mb-3 py-1 px-2 rounded fs-6"
+                style="border: 1px solid rgba(91, 0, 253, 0.1);"
+              >
+                <strong>Make:</strong>
+              </div>
+              <div
+                class="border mb-3 py-1 px-2 rounded fs-6"
+                style="border: 1px solid rgba(91, 0, 253, 0.1);"
+              >
+                <strong>Status:</strong> <span class="text-warning"></span>
+              </div>
+            </div>
+            <div
+              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 ms-3 mb-0 text-center"
+            >
+              <div class="mb-3">
+                <img
+                  id="imgFingerprints"
+                  class="img-thumbnail"
+                  src="/Images/FingerDemo.png"
+                  width="220"
+                  height="220"
+                  alt="Capture 1"
+                />
+              </div>
+              <button
+                id="btnCapture1"
+                class="btn btn-primary mt-3 w-100"
+                style="background-color: #5b00fd; border: none; color: #fff;"
+              >
+                <i class="fas fa-camera"></i> Capture 1
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div
+            class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 details_box"
+          >
+            <div class="row">
+              <div class="col-6">
+                <div>
+                  <label
+                    htmlFor="txtStatus"
+                    class="form-label fw-bold text-secondary"
+                    >Status:</label
+                  >
+                  <input
+                    type="text"
+                    id="txtStatus"
+                    class="form-control"
+                    disabled
+                  />
+                </div>
+              </div>
+              <div class="col-6">
+                <div>
+                  <label
+                    htmlFor="txtQuality"
+                    class="form-label fw-bold text-secondary"
+                    >Quality:</label
+                  >
+                  <input
+                    type="text"
+                    id="txtQuality"
+                    class="form-control"
+                    disabled
+                  />
+                </div>
+              </div>
+              <div class="col-12 mt-3">
+                <div>
+                  <label
+                    htmlFor="txtImageData"
+                    class="form-label fw-bold text-secondary"
+                    >Image Data:</label
+                  >
+                  <textarea
+                    id="txtImageData"
+                    class="form-control"
+                    rows="3"
+                    disabled
+                  >
+                                    <!-- {FingerprintData.BitmapData} -->
+                                </textarea
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow-sm border mb-4 rounded p-3">
+      <div class="row">
+        <div class="col-md-6 col-12">
+          <!-- Enroll Section Start -->
+          <p
+            class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+            style="
+              color: #5b00fd;
+              background-color: rgba(91, 0, 253, 0.1);
+              letter-spacing: 0.4px;
+            "
+          >
+            Enroll
+          </p>
+          <div class="card mb-0 border shadow-sm rounded p-3">
+            <div class="row g-3 align-items-end">
+              <div class="col-6">
+                <label
+                  htmlFor="txtGroup"
+                  class="form-label fw-bold text-secondary"
+                  >Group:</label
+                >
+                <input
+                  type="text"
+                  id="txtGroup"
+                  placeholder="Enter group name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="col-6">
+                <label
+                  htmlFor="enrollRequestExternalId"
+                  class="form-label fw-bold text-secondary"
+                  >Code:</label
+                >
+                <input
+                  type="text"
+                  id="enrollRequestExternalId"
+                  class="form-control"
+                />
+              </div>
+            </div>
+            <div class="row g-3 align-items-center mt-3">
+              <div class="d-flex align-items-center mt-3">
+                <div class="w-50">
+                  <label
+                    htmlFor="enrollResponseCode"
+                    class="form-label fw-bold text-secondary"
+                    >Response Code:</label
+                  >
+                  <p id="enrollResponseCode" class="border p-3 text-success">
+                    <!-- {enrollResponse.Code} -->
+                  </p>
+                </div>
+                <div class="w-50 ms-3">
+                  <label
+                    htmlFor="enrollResponseMessage"
+                    class="form-label fw-bold text-secondary"
+                    >Message:</label
+                  >
+                  <p id="enrollResponseMessage" class="border p-3 text-success">
+                    <!-- {enrollResponse.Message} -->
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 w-100">
+              <button
+                id="btnEnroll"
+                class="btn btn-primary mt-3 w-100"
+                style="background-color: #5b00fd; border: none; color: #fff;"
+              >
+                <i class="fas fa-camera"></i>
+                Enroll
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Enroll Section End -->
+
+        <!-- Search Section Start -->
+
+        <div class="col-md-6 col-12">
+          <p
+            class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+            style="
+              color: #5b00fd;
+              background-color: rgba(91, 0, 253, 0.1);
+              letter-spacing: 0.4px;
+            "
+          >
+            Search
+          </p>
+          <div class="card mb-0 border shadow-sm rounded p-3">
+            <div class="col-md-12 mt-2">
+              <button
+                id="btnMatch"
+                class="btn btn-primary mt-3 w-100"
+                style="background-color: #5b00fd; border: none; color: #fff;"
+                onclick="SearchFingerPrintAsync()"
+              >
+                <i class="fas fa-camera"></i> Search
+              </button>
+            </div>
+            <!-- Search Response -->
+            <div class="row g-3 align-items-center mt-3">
+              <div class="col-md-6">
+                <label htmlFor="txtImageInfo" class="form-label fw-bold text-secondary">
+                  Matching Score:
+                </label>
+                <input
+                  type="text"
+                  id="txtImageInfo"
+                  class="form-control"
+                  disabled
+                />
+              </div>
+            
+              <div class="col-md-6">
+                <label htmlFor="txtIsoTemplate" class="form-label fw-bold text-secondary">
+                  Image Data:
+                </label>
+                <textarea
+                  id="txtIsoTemplate"
+                  class="form-control"
+                  rows="1"
+                  disabled
+                >
+                </textarea>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- Search Section End -->
+      </div>
+    </div>
+
+    <!-- Match Section Start -->
+    <div class="bg-white shadow-sm border mb-4 rounded p-3">
+      <p
+        class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+        style="
+          color: #5b00fd;
+          background-color: rgba(91, 0, 253, 0.1);
+          letter-spacing: 0.4px;
+        "
+      >
+        Match
+      </p>
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between">
+            <div
+              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 text-center"
+            >
+              <p class="text_primary">Capture 1</p>
+              <div class="captured_img">
+                <img
+                  id="imgFingerprints"
+                  alt="Capture 1"
+                  class="img-thumbnail"
+                  src="/Images/FingerDemo.png"
+                  height="220"
+                  width="220"
+                />
+              </div>
+            </div>
+            <div
+              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 ms-3 mb-0 text-center"
+            >
+              <p class="text_primary">Capture 2</p>
+              <div class="captured_img">
+                <img
+                  id="imgFingerprints"
+                  alt="Capture 2"
+                  class="img-thumbnail"
+                  src="/Images/FingerDemo.png"
+                  height="220"
+                  width="220"
+                />
+              </div>
+              <div class="mt-3">
+                <button
+                  id="btnCapture2"
+                  class="btn btn-primary mt-3 w-100"
+                  style="background-color: #5b00fd; border: none; color: #fff;"
+                >
+                  Capture 2
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-center">
+          <button
+            id="btnMatch"
+            class="btn btn-primary mt-3 w-100"
+            style="background-color: #5b00fd; border: none; color: #fff;"
+          >
+            Match
+          </button>
+        </div>
+        <div class="col-md-4">
+          <div class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0">
+            <label for="txtStatus" class="form-label fw-bold text-secondary"
+              >Match:</label
+            >
+            <input
+              type="text"
+              id="txtStatus"
+              class="form-control"
+              value=""
+              disabled
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Match Section End -->
+
+    <!-- Match Section End -->
+  </body>
+</html>
