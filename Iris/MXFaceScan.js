@@ -1,18 +1,38 @@
-var uri = "http://localhost:8035/miscan/"
+var mxfaceuri = "https://iris.mxface.ai/api/Iris/";
+var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
 
-function GetDeviceInfoAsync() {debugger
-    return PostRequestAsync("info", "", 0);
-}
 
-function CaptureIris(timeout) {
+function EnrollIris(enrollRequest) {
     var MarvisAuthRequest = {
-        "TimeOut": timeout
+        "Iris": enrollRequest.Iris,
+        "ExternalId" : enrollRequest.externalId,
+        "Group" : enrollRequest.group,
     };
     var jsondata = JSON.stringify(MarvisAuthRequest);
-    return PostRequestAsync("capture", jsondata);
+    return PostRequestMxFaceAsync("Enroll", jsondata);
 }
 
-function PostRequestAsync(method, jsonData, isBodyAvailable) {
+function SearchIris(searchRequest) {
+    var MarvisAuthRequest = {
+        "iris": searchRequest.Iris,
+        "group" : searchRequest.group,
+    };
+    var jsondata = JSON.stringify(MarvisAuthRequest);
+    return PostRequestMxFaceAsync("Search", jsondata);
+}
+
+function MatchIris(matchRequest) {
+    var MarvisAuthRequest = {
+        "iris1": matchRequest.Iris1,
+        "iris2" : matchRequest.Iris2,
+    };
+    var jsondata = JSON.stringify(MarvisAuthRequest);
+    return PostRequestMxFaceAsync("Verify", jsondata);
+}
+
+
+
+function PostRequestMxFaceAsync(method, jsonData, isBodyAvailable) {
     var res;
     if (isBodyAvailable == 0) {
         $.support.cors = true;
@@ -21,10 +41,13 @@ function PostRequestAsync(method, jsonData, isBodyAvailable) {
             type: "POST",
             async: false,
             crossDomain: true,
-            url: uri + method,
+            url: mxfaceuri + method,
             contentType: "application/json; charset=utf-8",
             //data: jsonData,
             dataType: "json",
+            headers: {
+                "subscriptionkey": mxFaceSubscriptionKey
+              },
             processData: false,
             success: function (data) {
                 httpStaus = true;
@@ -42,10 +65,13 @@ function PostRequestAsync(method, jsonData, isBodyAvailable) {
             type: "POST",
             async: false,
             crossDomain: true,
-            url: uri + method,
+            url: mxfaceuri + method,
             contentType: "application/json; charset=utf-8",
             data: jsonData,
             dataType: "json",
+            headers: {
+                "subscriptionkey": mxFaceSubscriptionKey
+              },
             processData: false,
             success: function (data) {
                 httpStaus = true;
@@ -58,7 +84,6 @@ function PostRequestAsync(method, jsonData, isBodyAvailable) {
     }
     return res;
 }
-
 function getHttpError(jqXHR) {
     var err = "Unhandled Exception";
     if (jqXHR.status === 0) {
