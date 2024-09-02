@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Fingerprint</title>
     <script
       src="https://code.jquery.com/jquery-3.7.1.min.js"
       integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
@@ -15,12 +15,255 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+
+    <script src="/Fingerprint/Javascript/MFScan.js"></script>
+    <script src="/Fingerprint/Javascript/MXFace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <script language="javascript" type="text/javascript">
+      var timeout = 50; // seconds (minimum=10(recommanded), maximum=60, unlimited=0 )
+      var nooffinger = "1";
+
+      var isInit = 0;
+      var delayInMilliseconds = 300;
+      var fingerprintBitmapData;
+      const enrollRequest = {};
+      const searchRequest = {};
+      const matchRequest = {};
+      const captureFingerprint = new Map();
+      function OnInitialized() {
+        document.getElementById("tdSerial").innerHTML = "";
+        document.getElementById("tdMake").innerHTML = "";
+        document.getElementById("tdModel").innerHTML = "";
+        document.getElementById("txtStatus").innerHTML = "";
+
+        document.getElementById("enrollRequestExternalId").value = uuid.v4();
+
+        // Get connected device list
+        var res = GetConnectedDeviceList();
+        if (res.httpStatus) {
+          if (res.data != null && res.data.ErrorCode == 0) {
+            var connectedDevices = res.data.ErrorDescription;
+            if (connectedDevices != null && connectedDevices != "") {
+              connectedDevices = connectedDevices.split(":");
+              if (connectedDevices != null && connectedDevices.length > 1) {
+                connectedDevices = connectedDevices[1].split(",");
+
+                // Use the first connected device (if available)
+                if (connectedDevices.length > 0) {
+                  var connectedDvc = connectedDevices[0];
+
+                  // Get MorFin Auth Info
+                  var authRes = GetMorFinAuthInfo(connectedDvc);
+
+                  if (authRes.httpStatus) {
+                    document.getElementById('txtStatus').innerHTML = authRes.data.ErrorDescription;
+
+                    if (authRes.data.ErrorCode == "0") {
+                      isInit = 1;
+                      document.getElementById("tdSerial").innerHTML =
+                        authRes.data.DeviceInfo.SerialNo;
+                      document.getElementById("tdMake").innerHTML =
+                        authRes.data.DeviceInfo.Make;
+                      document.getElementById("tdModel").innerHTML =
+                        authRes.data.DeviceInfo.Model;
+                    }
+                  } else {
+                    alert(authRes.err);
+                  }
+                } else {
+                  alert("No connected devices found");
+                  clearDeviceInfo();
+                }
+              }
+            } else {
+              alert("Connected device not found");
+              clearDeviceInfo();
+            }
+          }
+        } else {
+          alert("Failed to get connected device list: " + res.err);
+        }
+        return false;
+      }
+      function captureFingerprintAsync(captureKey) {
+        try {
+          document.getElementById("SuccessStatus").value = "";
+          document.getElementById("txtQuality").value = "";
+          document.getElementById("txtImageData").value = "";
+
+          setTimeout(function () {
+            if (captureFingerprint.keys(captureKey)) {
+              captureFingerprint.set(captureKey, null);
+            }
+            var res = CaptureFingerprint(timeout);
+            if (res.httpStatus) {
+              if (res.data.ErrorCode == "0") {
+                if (res.data.BitmapData != null) {
+                  captureFingerprint.set(captureKey, res.data.BitmapData);
+
+                  if (captureKey == "capture1") {
+                    document.getElementById("imgFingerprint").src =
+                      "data:image/bmp;base64," + res.data.BitmapData;
+                    document.getElementById("matchFingerprint1").src =
+                      "data:image/bmp;base64," + res.data.BitmapData;
+                  } else {
+                    document.getElementById("matchFingerprint2").src =
+                      "data:image/bmp;base64," + res.data.BitmapData;
+                  }
+                } else {
+                  document.getElementById("imgFingerprint").src =
+                    "../Fingerprint/img/FingerprintDemo.svg";
+                }
+                document.getElementById("SuccessStatus").value =
+                  res.data.ErrorDescription;
+                document.getElementById("txtQuality").value = res.data.Quality;
+                document.getElementById("txtImageData").value =
+                  res.data.BitmapData;
+
+                if (captureKey == "capture1") {
+                  matchRequest.Fingerprint1 = res.data.BitmapData;
+                } else {
+                  matchRequest.Fingerprint2 = res.data.BitmapData;
+                }
+                enrollRequest.Fingerprint = res.data.BitmapData;
+                searchRequest.Fingerprint = res.data.BitmapData;
+                FingerprintBitmapData = res.data.BitmapData;
+              } else {
+                document.getElementById("SuccessStatus").value =
+                  res.data.ErrorDescription;
+                alert(res.data.ErrorDescription);
+              }
+            } else {
+              document.getElementById("SuccessStatus").value =
+                res.data.ErrorDescription;
+              alert(res.err);
+            }
+
+            DisabledButton(false);
+          }, delayInMilliseconds);
+        } catch (e) {
+          document.getElementById("txtStatus").value =
+            res.data.ErrorDescription;
+          alert(e);
+        }
+        return false;
+      }
+
+      function EnrollFingerprintAsync() {
+        try {
+          enrollRequest.group = $("#txtGroup").val();
+          if (enrollRequest.group != null) {
+            searchRequest.group = $("#txtGroup").val();
+          } else {
+            alert("empty group");
+          }
+          enrollRequest.externalId = $("#enrollRequestExternalId").val();
+          document.getElementById("enrollResponseCode").value = "";
+          document.getElementById("enrollResponseMessage").value = "";
+
+          var res = EnrollFingerprint(enrollRequest);
+
+          if (res.httpStatus) {
+            if (res.data.code == 200) {
+              document.getElementById("enrollResponseCode").value =
+                res.data.code;
+              document.getElementById("enrollResponseMessage").value =
+                res.data.message;
+            } else {
+              alert(res.data.message);
+            }
+          } else {
+            alert(res.err);
+          }
+          DisabledButton(false);
+        } catch (e) {
+          alert(e);
+        }
+        return false;
+      }
+
+      function SearchFingerprintAsync() {
+        try {
+          DisabledButton(true);
+
+          document.getElementById("searchResponceMatchingScore").value = "";
+          document.getElementById("searchResponceImageData").value = "";
+
+          var res = SearchFingerprint(searchRequest);
+
+          if (res.httpStatus) {
+            if (res.data.matchResult[0].externalId != null) {
+              document.getElementById("searchResponceMatchingScore").value =
+                res.data.matchResult[0].matchingScore;
+              document.getElementById(
+                "searchResponceImageData"
+              ).value = FingerprintBitmapData;
+            } else {
+              alert(res.data.message);
+            }
+          } else {
+            alert(res.err);
+          }
+          DisabledButton(false);
+        } catch (e) {
+          alert(e);
+        }
+        return false;
+      }
+
+      function MatchFingerprintAsync() {
+        try {
+          debugger;
+          document.getElementById("matchStatus").value = "";
+
+          if (
+            matchRequest.Fingerprint1 != null &&
+            matchRequest.Fingerprint2 != null
+          ) {
+            var res = MatchFingerprints(matchRequest);
+
+            if (res.httpStatus) {
+              debugger;
+              if ((res.data.code = 200)) {
+                document.getElementById("matchStatus").value = res.data.matched;
+              } else {
+                alert(res.data.message);
+              }
+            } else {
+              alert(res.err);
+            }
+          } else {
+            alert("capture both Fingerprint");
+          }
+          DisabledButton(false);
+        } catch (e) {
+          alert(e);
+        }
+        return false;
+      }
+
+      function DisabledButton(isDisabled) {
+        $("#btnCapture").prop("disabled", isDisabled);
+        $("#btnInfo").prop("disabled", isDisabled);
+        $("#btnVerify").prop("disabled", isDisabled);
+        $("#btnMatch").prop("disabled", isDisabled);
+      }
+    </script>
   </head>
 
-  <body>
+  <body onload="OnInitialized()">
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function OnInitialized() {
+          // Your existing OnInitialized code here
+        }
+
+        OnInitialized();
+      });
+    </script>
     <div class="bg-white shadow-sm border mb-4 rounded p-3">
       <p
-        class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+        class="fs-4 fw-bold text-capitalize mb-2 py-1 px-4"
         style="
           color: #5b00fd;
           background-color: rgba(91, 0, 253, 0.1);
@@ -33,31 +276,31 @@
         <div class="col-md-6">
           <div class="d-flex justify-content-between">
             <div
-              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 details_box"
+              class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 h-93 details_box"
             >
               <div
                 class="border mb-3 py-1 px-2 rounded fs-6"
                 style="border: 1px solid rgba(91, 0, 253, 0.1);"
               >
-                <strong>Serial No:</strong>
+                <strong>Serial No:</strong> <span id="tdSerial"></span>
               </div>
               <div
                 class="border mb-3 py-1 px-2 rounded fs-6"
                 style="border: 1px solid rgba(91, 0, 253, 0.1);"
               >
-                <strong>Model:</strong>
+                <strong>Model:</strong> <span id="tdModel"></span>
               </div>
               <div
                 class="border mb-3 py-1 px-2 rounded fs-6"
                 style="border: 1px solid rgba(91, 0, 253, 0.1);"
               >
-                <strong>Make:</strong>
+                <strong>Make:</strong> <span id="tdMake"></span>
               </div>
               <div
                 class="border mb-3 py-1 px-2 rounded fs-6"
                 style="border: 1px solid rgba(91, 0, 253, 0.1);"
               >
-                <strong>Status:</strong> <span class="text-warning"></span>
+                <strong>Status:</strong> <span id="txtStatus"></span>
               </div>
             </div>
             <div
@@ -65,9 +308,9 @@
             >
               <div class="mb-3">
                 <img
-                  id="imgFingerprints"
+                  id="imgFingerprint"
                   class="img-thumbnail"
-                  src="/Images/FingerDemo.png"
+                  src="/Fingerprint/Images/FingerDemo.png"
                   width="220"
                   height="220"
                   alt="Capture 1"
@@ -77,27 +320,30 @@
                 id="btnCapture1"
                 class="btn btn-primary mt-3 w-100"
                 style="background-color: #5b00fd; border: none; color: #fff;"
+                onclick="return captureFingerprintAsync('capture1')"
               >
-                <i class="fas fa-camera"></i> Capture 1
+                Capture 1
               </button>
             </div>
           </div>
         </div>
         <div class="col-6">
           <div
-            class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 details_box"
+            class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0"
+            style="height: 93%;"
           >
             <div class="row">
               <div class="col-6">
                 <div>
                   <label
-                    htmlFor="txtStatus"
+                    htmlFor="SuccessStatus"
                     class="form-label fw-bold text-secondary"
                     >Status:</label
                   >
                   <input
                     type="text"
-                    id="txtStatus"
+                    id="SuccessStatus"
+                    value=""
                     class="form-control"
                     disabled
                   />
@@ -111,8 +357,9 @@
                     >Quality:</label
                   >
                   <input
-                    type="text"
+                    type="number"
                     id="txtQuality"
+                    value=""
                     class="form-control"
                     disabled
                   />
@@ -127,13 +374,12 @@
                   >
                   <textarea
                     id="txtImageData"
+                    value=""
                     class="form-control"
                     rows="3"
                     disabled
                   >
-                                    <!-- {FingerprintData.BitmapData} -->
-                                </textarea
-                  >
+                  </textarea>
                 </div>
               </div>
             </div>
@@ -144,10 +390,11 @@
 
     <div class="bg-white shadow-sm border mb-4 rounded p-3">
       <div class="row">
+        <!-- Enroll Section Start -->
+
         <div class="col-md-6 col-12">
-          <!-- Enroll Section Start -->
           <p
-            class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+            class="fs-4 fw-bold text-capitalize mb-2 py-1 px-4"
             style="
               color: #5b00fd;
               background-color: rgba(91, 0, 253, 0.1);
@@ -181,6 +428,7 @@
                 <input
                   type="text"
                   id="enrollRequestExternalId"
+                  value=""
                   class="form-control"
                 />
               </div>
@@ -193,9 +441,13 @@
                     class="form-label fw-bold text-secondary"
                     >Response Code:</label
                   >
-                  <p id="enrollResponseCode" class="border p-3 text-success">
-                    <!-- {enrollResponse.Code} -->
-                  </p>
+                  <input
+                    type="number"
+                    id="enrollResponseCode"
+                    value=""
+                    class="form-control"
+                    disabled
+                  />
                 </div>
                 <div class="w-50 ms-3">
                   <label
@@ -203,9 +455,13 @@
                     class="form-label fw-bold text-secondary"
                     >Message:</label
                   >
-                  <p id="enrollResponseMessage" class="border p-3 text-success">
-                    <!-- {enrollResponse.Message} -->
-                  </p>
+                  <input
+                    type="text"
+                    id="enrollResponseMessage"
+                    value=""
+                    class="form-control"
+                    disabled
+                  />
                 </div>
               </div>
             </div>
@@ -214,8 +470,8 @@
                 id="btnEnroll"
                 class="btn btn-primary mt-3 w-100"
                 style="background-color: #5b00fd; border: none; color: #fff;"
+                onclick="return EnrollFingerprintAsync()"
               >
-                <i class="fas fa-camera"></i>
                 Enroll
               </button>
             </div>
@@ -227,7 +483,7 @@
 
         <div class="col-md-6 col-12">
           <p
-            class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+            class="fs-4 fw-bold text-capitalize mb-2 py-1 px-4"
             style="
               color: #5b00fd;
               background-color: rgba(91, 0, 253, 0.1);
@@ -242,49 +498,57 @@
                 id="btnMatch"
                 class="btn btn-primary mt-3 w-100"
                 style="background-color: #5b00fd; border: none; color: #fff;"
-                onclick="SearchFingerPrintAsync()"
+                onclick="return SearchFingerprintAsync()"
               >
-                <i class="fas fa-camera"></i> Search
+                Search
               </button>
             </div>
-            <!-- Search Response -->
             <div class="row g-3 align-items-center mt-3">
               <div class="col-md-6">
-                <label htmlFor="txtImageInfo" class="form-label fw-bold text-secondary">
+                <label
+                  htmlFor="searchResponceMatchingScore"
+                  class="form-label fw-bold text-secondary"
+                >
                   Matching Score:
                 </label>
                 <input
                   type="text"
-                  id="txtImageInfo"
+                  id="searchResponceMatchingScore"
+                  value=""
                   class="form-control"
                   disabled
                 />
               </div>
-            
+
               <div class="col-md-6">
-                <label htmlFor="txtIsoTemplate" class="form-label fw-bold text-secondary">
+                <label
+                  htmlFor="searchResponceImageData"
+                  class="form-label fw-bold text-secondary"
+                >
                   Image Data:
                 </label>
                 <textarea
-                  id="txtIsoTemplate"
+                  id="searchResponceImageData"
+                  value=""
                   class="form-control"
-                  rows="1"
+                  rows="2"
                   disabled
                 >
                 </textarea>
               </div>
             </div>
-
           </div>
         </div>
+
         <!-- Search Section End -->
       </div>
     </div>
 
     <!-- Match Section Start -->
+
     <div class="bg-white shadow-sm border mb-4 rounded p-3">
       <p
-        class="fs-4 fw-semibold text-capitalize mb-2 py-1 px-4"
+        class="fs-4 fw-bold text-capitalize mb-2 py-1 px-4"
         style="
           color: #5b00fd;
           background-color: rgba(91, 0, 253, 0.1);
@@ -299,70 +563,75 @@
             <div
               class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0 text-center"
             >
-              <p class="text_primary">Capture 1</p>
-              <div class="captured_img">
+              <p
+                class="fw-bold"
+                style="
+                  font-size: 18px;
+                  font-weight: 600;
+                  letter-spacing: 0.4px;
+                  color: #5b00fd;
+                "
+              >
+                Capture 1
+              </p>
+              <div class="mb-3">
                 <img
-                  id="imgFingerprints"
-                  alt="Capture 1"
+                  id="matchFingerprint1"
                   class="img-thumbnail"
-                  src="/Images/FingerDemo.png"
-                  height="220"
+                  src="/Fingerprint/Images/FingerDemo.png"
                   width="220"
+                  height="220"
+                  alt="Capture 1"
                 />
               </div>
             </div>
             <div
               class="bg-white shadow-sm border mb-4 rounded p-3 w-100 ms-3 mb-0 text-center"
             >
-              <p class="text_primary">Capture 2</p>
-              <div class="captured_img">
+              <div class="mb-3">
                 <img
-                  id="imgFingerprints"
-                  alt="Capture 2"
+                  id="matchFingerprint2"
                   class="img-thumbnail"
-                  src="/Images/FingerDemo.png"
-                  height="220"
+                  src="/Fingerprint/Images/FingerDemo.png"
                   width="220"
+                  height="220"
+                  alt="Capture 1"
                 />
               </div>
-              <div class="mt-3">
-                <button
-                  id="btnCapture2"
-                  class="btn btn-primary mt-3 w-100"
-                  style="background-color: #5b00fd; border: none; color: #fff;"
-                >
-                  Capture 2
-                </button>
-              </div>
+              <button
+                id="btnCapture2"
+                class="btn btn-primary mt-3 w-100"
+                style="background-color: #5b00fd; border: none; color: #fff;"
+                onclick="return captureFingerprintAsync('capture2')"
+              >
+                Capture 2
+              </button>
             </div>
           </div>
         </div>
-        <div class="col-md-2 d-flex align-items-center">
+        <div class="col-md-2">
           <button
-            id="btnMatch"
-            class="btn btn-primary mt-3 w-100"
+            id="btnEnroll"
+            class="btn btn-primary w-100"
             style="background-color: #5b00fd; border: none; color: #fff;"
+            onclick="return MatchFingerprintAsync()"
           >
             Match
           </button>
         </div>
         <div class="col-md-4">
-          <div class="bg-white shadow-sm border mb-4 rounded p-3 w-100 mb-0">
-            <label for="txtStatus" class="form-label fw-bold text-secondary"
-              >Match:</label
+          <div class="card mb-0 p-3">
+            <label
+              htmlFor="matchStatus"
+              class="form-label fw-bold text-secondary"
             >
-            <input
-              type="text"
-              id="txtStatus"
-              class="form-control"
-              value=""
-              disabled
-            />
+              Match:
+            </label>
+            <input type="text" id="matchStatus" class="form-control" disabled />
           </div>
         </div>
       </div>
     </div>
-    <!-- Match Section End -->
 
     <!-- Match Section End -->
   </body>
