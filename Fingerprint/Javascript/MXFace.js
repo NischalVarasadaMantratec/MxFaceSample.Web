@@ -1,111 +1,120 @@
-// MXFace.js
+/**
+ * Provides functions to interact with the MXFace fingerprint API.
+ *
+ * The `mxfingerprinturi` and `mxFaceSubscriptionKey` variables hold the API endpoint and subscription key, respectively.
+ *
+ * The `EnrollFingerprint` function enrolls a fingerprint with the MXFace API.
+ *
+ * The `SearchFingerprint` function searches for a fingerprint in the MXFace API.
+ *
+ * The `MatchFingerprints` function matches two fingerprints in the MXFace API.
+ *
+ * The `PostRequestMxFaceAsync` function is a helper function that makes asynchronous POST requests to the MXFace API.
+ *
+ * The `getHttpError` function is a helper function that returns a human-readable error message based on the HTTP status code.
+ */
 
-document.addEventListener("DOMContentLoaded", function () {
-  // Enroll Button Click Event
-  document.getElementById("btnEnroll").addEventListener("click", function () {
-    enrollFingerprint();
-  });
+var mxfingerprinturi = "https://fingerprintapi.mxface.ai/api/FingerPrint/";
+var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
 
-  // Search Button Click Event
-  document.getElementById("btnMatch").addEventListener("click", function () {
-    searchFingerprint();
-  });
+function EnrollFingerprint(enrollRequest) {
+  var MarvisAuthRequest = {
+    Fingerprint: enrollRequest.Fingerprint,
+    ExternalId: enrollRequest.externalId,
+    Group: enrollRequest.group,
+  };
+  var jsonData = JSON.stringify(MarvisAuthRequest);
+  return PostRequestMxFaceAsync("Enroll", jsonData);
+}
 
-  // Match Button Click Event
-  document.getElementById("btnMatch").addEventListener("click", function () {
-    matchFingerprints();
-  });
+function SearchFingerprint(searchRequest) {
+  var MarvisAuthRequest = {
+    Fingerprint: searchRequest.Fingerprint,
+    Group: searchRequest.group,
+  };
+  var jsonData = JSON.stringify(MarvisAuthRequest);
+  return PostRequestMxFaceAsync("Search", jsonData);
+}
 
-  // Function to enroll fingerprint
-  function enrollFingerprint() {
-    const group = document.getElementById("txtGroup").value;
-    const code = document.getElementById("enrollRequestExternalId").value;
-    const fingerprint = localStorage.getItem("capture1"); // Assuming capture1 is used for enrollment
+function MatchFingerprints(matchRequest) {
+  debugger;
+  var MarvisAuthRequest = {
+    Fingerprint1: matchRequest.Fingerprint1,
+    Fingerprint2: matchRequest.Fingerprint2,
+  };
+  var jsonData = JSON.stringify(MarvisAuthRequest);
+  return PostRequestMxFaceAsync("Verify", jsonData);
+}
 
-    fetch("/api/fingerprint/enroll", {
-      method: "POST",
+function PostRequestMxFaceAsync(method, jsonData, isBodyAvailable) {
+  debugger;
+  var res;
+  if (isBodyAvailable == 0) {
+    $.support.cors = true;
+    var httpStatus = false;
+    $.ajax({
+      type: "POST",
+      async: false,
+      crossDomain: true,
+      url: mxfingerprinturi + method,
+      contentType: "application/json; charset=utf-8",
+      //data: jsonData,
+      dataType: "json",
       headers: {
-        "Content-Type": "application/json",
+        subscriptionkey: mxFaceSubscriptionKey,
       },
-      body: JSON.stringify({
-        group: group,
-        externalId: code,
-        fingerprint: fingerprint,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("enrollResponseCode").textContent = data.code;
-        document.getElementById("enrollResponseMessage").textContent =
-          data.message;
-      })
-      .catch((error) => {
-        console.error("Error enrolling fingerprint:", error);
-      });
-  }
-
-  // Function to search for a fingerprint
-  function searchFingerprint() {
-    const group = document.getElementById("txtGroup").value;
-    const fingerprint = localStorage.getItem("capture1"); // Assuming capture1 is used for search
-
-    fetch("/api/fingerprint/search", {
-      method: "POST",
+      processData: false,
+      success: function (data) {
+        httpStatus = true;
+        res = { httpStatus: httpStatus, data: data };
+      },
+      error: function (jqXHR, ajaxOptions, thrownError) {
+        res = { httpStatus: httpStatus, err: getHttpError(jqXHR) };
+      },
+    });
+  } else {
+    $.support.cors = true;
+    var httpStatus = false;
+    $.ajax({
+      type: "POST",
+      async: false,
+      crossDomain: true,
+      url: mxfingerprinturi + method,
+      contentType: "application/json; charset=utf-8",
+      data: jsonData,
+      dataType: "json",
       headers: {
-        "Content-Type": "application/json",
+        subscriptionkey: mxFaceSubscriptionKey,
       },
-      body: JSON.stringify({
-        group: group,
-        fingerprint: fingerprint,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const matchResult = data.matchResult;
-        if (matchResult && matchResult.length > 0) {
-          document.getElementById("txtImageInfo").value =
-            matchResult[0].matchingScore;
-          document.getElementById("txtSearchResponse").value =
-            matchResult[0].imageData;
-          document.getElementById("txtSearchDetails").textContent =
-            matchResult[0].details;
-          document.getElementById("searchResponseContainer").style.display =
-            "block";
-        } else {
-          document.getElementById("txtImageInfo").value =
-            "No match results found!";
-          document.getElementById("searchResponseContainer").style.display =
-            "none";
-        }
-      })
-      .catch((error) => {
-        console.error("Error searching fingerprint:", error);
-      });
-  }
-
-  // Function to match fingerprints
-  function matchFingerprints() {
-    const fingerprint1 = localStorage.getItem("capture1");
-    const fingerprint2 = localStorage.getItem("capture2");
-
-    fetch("/api/fingerprint/match", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+      processData: false,
+      success: function (data) {
+        httpStatus = true;
+        res = { httpStatus: httpStatus, data: data };
       },
-      body: JSON.stringify({
-        fingerprint1: fingerprint1,
-        fingerprint2: fingerprint2,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("txtStatus").value = data.matched
-          ? "Match Found"
-          : "No Match Found";
-      })
-      .catch((error) => {
-        console.error("Error matching fingerprints:", error);
-      });
+      error: function (jqXHR, ajaxOptions, thrownError) {
+        res = { httpStatus: httpStatus, err: getHttpError(jqXHR) };
+      },
+    });
   }
-});
+  return res;
+}
+
+function getHttpError(jqXHR) {
+  var err = "Unhandled exception";
+  if (jqXHR.status === 0) {
+    err = "Service Unavailable";
+  } else if (jqXHR.status == 400) {
+    err = "Requested page not found.";
+  } else if (jqXHR.status == 500) {
+    err = "Internal Server Error";
+  } else if (thrownError === "parsererror") {
+    err = "Requested JSON parse failed.";
+  } else if (thrownError === "timeout") {
+    err = "Time out error.";
+  } else if (thrownError === "abort") {
+    err = "Ajax request aborted.";
+  } else {
+    err = "Unhandled error.";
+  }
+  return err;
+}
