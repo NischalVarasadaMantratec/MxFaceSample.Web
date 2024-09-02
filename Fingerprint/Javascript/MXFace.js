@@ -1,18 +1,3 @@
-/**
- * Provides functions to interact with the MXFace fingerprint API.
- *
- * The `mxfingerprinturi` and `mxFaceSubscriptionKey` variables hold the API endpoint and subscription key, respectively.
- *
- * The `EnrollFingerprint` function enrolls a fingerprint with the MXFace API.
- *
- * The `SearchFingerprint` function searches for a fingerprint in the MXFace API.
- *
- * The `MatchFingerprints` function matches two fingerprints in the MXFace API.
- *
- * The `PostRequestMxFaceAsync` function is a helper function that makes asynchronous POST requests to the MXFace API.
- *
- * The `getHttpError` function is a helper function that returns a human-readable error message based on the HTTP status code.
- */
 
 var mxfingerprinturi = "https://fingerprintapi.mxface.ai/api/FingerPrint/";
 var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
