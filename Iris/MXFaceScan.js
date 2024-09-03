@@ -1,5 +1,5 @@
 var mxfaceuri = "https://iris.mxface.ai/api/Iris/";
-var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
+var mxFaceSubscriptionKey = "Your Subscription Key";
 
 
 function EnrollIris(enrollRequest) {

@@ -1,6 +1,6 @@
 
 var mxfingerprinturi = "https://fingerprintapi.mxface.ai/api/FingerPrint/";
-var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
+var mxFaceSubscriptionKey = "Your Subscription Key";
 
 function EnrollFingerprint(enrollRequest) {
   var MarvisAuthRequest = {
