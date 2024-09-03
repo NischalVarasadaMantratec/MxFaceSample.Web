@@ -1,4 +1,3 @@
-
 var mxfingerprinturi = "https://fingerprintapi.mxface.ai/api/FingerPrint/";
 var mxFaceSubscriptionKey = "Your Subscription Key";
 
