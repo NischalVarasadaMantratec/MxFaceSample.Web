@@ -1,6 +1,8 @@
 var mxfingerprinturi = "https://fingerprintapi.mxface.ai/api/FingerPrint/";
-var mxFaceSubscriptionKey = "Your Subscription Key";
+var mxFaceSubscriptionKey = "VRWtecJ7RhltMzCq5blE";
 
+
+// Enrolls a fingerprint using the provided enrollment request data
 function EnrollFingerprint(enrollRequest) {
   var MarvisAuthRequest = {
     Fingerprint: enrollRequest.Fingerprint,
@@ -11,6 +13,8 @@ function EnrollFingerprint(enrollRequest) {
   return PostRequestMxFaceAsync("Enroll", jsonData);
 }
 
+
+// Searches for a fingerprint using the provided search request data
 function SearchFingerprint(searchRequest) {
   var MarvisAuthRequest = {
     Fingerprint: searchRequest.Fingerprint,
@@ -20,6 +24,7 @@ function SearchFingerprint(searchRequest) {
   return PostRequestMxFaceAsync("Search", jsonData);
 }
 
+// Matches two fingerprints using the provided match request data
 function MatchFingerprints(matchRequest) {
   debugger;
   var MarvisAuthRequest = {
@@ -30,6 +35,7 @@ function MatchFingerprints(matchRequest) {
   return PostRequestMxFaceAsync("Verify", jsonData);
 }
 
+// Deletes a fingerprint using the provided delete request data
 function PostRequestMxFaceAsync(method, jsonData, isBodyAvailable) {
   debugger;
   var res;
@@ -83,6 +89,7 @@ function PostRequestMxFaceAsync(method, jsonData, isBodyAvailable) {
   return res;
 }
 
+// Returns the error message for the given HTTP error
 function getHttpError(jqXHR) {
   var err = "Unhandled exception";
   if (jqXHR.status === 0) {

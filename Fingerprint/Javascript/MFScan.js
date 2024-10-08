@@ -1,10 +1,12 @@
 const uri = "http://localhost:8034/mfscan/";
 
+// Retrieves a list of connected devices
 function GetConnectedDeviceList() {
   return PostRequestAsync("connecteddevicelist", "", 0);
 }
 
-function GetMorFinAuthInfo(connectedDvc, clientKey) {
+// Retrieves the device information
+function GetDeviceAuthInfo(connectedDvc, clientKey) {
   var MorFinAuthRequest = {
     ConnectedDvc: connectedDvc,
     ClientKey: clientKey,
@@ -13,6 +15,8 @@ function GetMorFinAuthInfo(connectedDvc, clientKey) {
   return PostRequestAsync("info", jsondata);
 }
 
+
+// Captures a fingerprint with specified quality and timeout
 function CaptureFingerprint(quality, timeout) {
   var MorFinAuthRequest = {
     Quality: quality,
@@ -22,6 +26,7 @@ function CaptureFingerprint(quality, timeout) {
   return PostRequestAsync("capture", jsondata);
 }
 
+// Sends an asynchronous POST request to the specified method endpoint
 function PostRequestAsync(method, jsonData, isBodyAvailable) {
   var res;
   if (isBodyAvailable == 0) {
@@ -68,6 +73,7 @@ function PostRequestAsync(method, jsonData, isBodyAvailable) {
   return res;
 }
 
+// Function to get HTTP error message based on jqXHR status
 function getHttpError(jqXHR) {
   var err = "Unhandled exception";
   if (jqXHR.status === 0) {
